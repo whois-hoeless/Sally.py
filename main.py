@@ -224,7 +224,8 @@ async def on_message(message):
         return
 
 
-    elif 'sally' in message.content.lower() or client.user.mentioned_in(message): # if the bot is mentioned in the message, then
+    elif 'sally' in message.content.lower() or client.user.mentioned_in(message) or respond_to_everything: # if the bot is mentioned 
+                                                                    # in the message or if you want it to respond to all messages, then..
 
         if load_dc_messages: # if discord messages are loaded already
 
