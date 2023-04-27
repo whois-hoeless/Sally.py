@@ -13,9 +13,8 @@ from bots_config import *
 
 
 client = discord.Client(intents=discord.Intents.all())
-history = []
 load_dc_messages = False 
-
+history = []
 
 
 def build_prompt_on_history(history): # build prompt string from the history list
@@ -149,6 +148,7 @@ def oobabooga(msg): # send the prompt to oobabooga and return the generated text
     params_oobabooga["prompt"] = msg
     params_oobabooga["max_new_tokens"] = 150
     payload = json.dumps(params_oobabooga, ensure_ascii=True)
+    print(payload)
     response = requests.post(f"http://{oobabooga_Server}:5000/api/v1/generate", data=payload)
     response = response.json()
     reply = response["results"][0]["text"]
@@ -216,6 +216,7 @@ async def on_ready():
 
 @client.event # all of the funny stuff that happens as soon as the bot detects a message is been sent
 async def on_message(message):
+    global history
     global load_dc_messages
 
 
@@ -362,7 +363,7 @@ async def on_message(message):
                         f.close()
 
                         # to explain this, content is always the message text, file is the attachment and reference is the message that the bot is replying to
-                        await message.channel.send(content="Here you go! ^^",file=selfie, reference=message) 
+                        await message.channel.send(file=selfie, reference=message) 
 
                 else:
 
@@ -473,7 +474,7 @@ async def on_message(message):
                             selfie = discord.File(f, filename="selfie.png")
                         f.close()
 
-                        await message.channel.send(content="Here you go! ^^", file=selfie, reference=message)
+                        await message.channel.send(file=selfie, reference=message)
 
                 else:
                     print("stable diff is not enabled, ignoring image request..")
