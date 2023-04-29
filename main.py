@@ -11,7 +11,6 @@ import io
 from bots_config import *
 import os
 from dotenv import load_dotenv
-
 load_dotenv()
 user_whitelist = []
 user_blacklist = []
@@ -23,11 +22,6 @@ try:
     for i in uw:
         user_whitelist.append(int(i))
 except: pass
-
-print(type(user_blacklist))
-print(user_blacklist)
-print(type(user_whitelist))
-print(user_whitelist)
 
 client = discord.Client(intents=discord.Intents.all())
 load_dc_messages = False 
