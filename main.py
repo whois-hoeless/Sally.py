@@ -9,8 +9,25 @@ from PIL import Image
 import base64
 import io
 from bots_config import *
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
+user_whitelist = []
+user_blacklist = []
+ub = os.getenv("user_blacklist").split(',')
+uw = os.getenv("user_whitelist").split(',')
+try: 
+    for i in ub:
+        user_blacklist.append(int(i))
+    for i in uw:
+        user_whitelist.append(int(i))
+except: pass
 
+print(type(user_blacklist))
+print(user_blacklist)
+print(type(user_whitelist))
+print(user_whitelist)
 
 client = discord.Client(intents=discord.Intents.all())
 load_dc_messages = False 
@@ -219,8 +236,12 @@ async def on_message(message):
     global history
     global load_dc_messages
 
+    try:
+        if message.author.id in user_blacklist: # I can't trust people that they don't have an empty list here at this point..
+            return
+    except: pass
 
-    if message.author == client.user or message.author.id in user_blacklist: # if the message is from the bot or the user is blacklisted,
+    if message.author == client.user: # if the message is from the bot or the user is blacklisted,
                                                                              # then just completely ignore the message
         return
 
@@ -331,11 +352,13 @@ async def on_message(message):
             elif check_for_image_request(message.content): # if the text is a request for an image
 
 
-                if message.author.id not in user_whitelist: # if the user is not whitelisted, then ignore the message
+                try:
+                    if message.author.id not in user_whitelist: # if the user is not whitelisted, then ignore the message
 
-                    print(f"{message.author} tried to request an image, but is not whitelisted. Ignoring.")
-                    return
-                
+                        print(f"{message.author} tried to request an image, but is not whitelisted. Ignoring.")
+                        return
+                except: 
+                    pass
 
                 if stable_diff_is_used: # if stable diff is enabled, do the funny
 
@@ -442,11 +465,13 @@ async def on_message(message):
 
             elif check_for_image_request(message.content): # explained above..
 
-                if message.author.id not in user_whitelist:
+                try:
+                    if message.author.id not in user_whitelist:
 
-                    print(f"{message.author} tried to request an image, but is not whitelisted. Ignoring.")
-                    return
-                
+                        print(f"{message.author} tried to request an image, but is not whitelisted. Ignoring.")
+                        return
+                except: 
+                    pass
 
                 if stable_diff_is_used:
 
@@ -508,4 +533,4 @@ async def on_message(message):
         return # if the message is random ignore it
             
 
-client.run(bot_token) # run the bot
+client.run(os.getenv('bot_token')) # run the bot

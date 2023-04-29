@@ -1,14 +1,11 @@
 # Discord Stuff
 ##############################################################################################################################################
 Bot_Name= "Sally"
-user_whitelist = [629341201170038785] # whitelist for image request
-user_blacklist = [629341201170034485] # complete blacklist
 activity = "Neural network brain stuff" # set the bot activity
 memory_amount = 20
 respond_to_everything = True
 ignore_mode= False # ignore messages containing bad shit, otherwise just strip the messages 
                    # and feed that to the bot. Messages containing links will always be ignored.
-bot_token= "" # set the bot token
 ##############################################################################################################################################
 
 
