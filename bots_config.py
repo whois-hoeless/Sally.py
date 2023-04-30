@@ -2,7 +2,7 @@
 ##############################################################################################################################################
 Bot_Name= "Sally"
 activity = "Neural network brain stuff" # set the bot activity
-memory_amount = 20
+memory_amount = 10
 respond_to_everything = True
 ignore_mode= False # ignore messages containing bad shit, otherwise just strip the messages 
                    # and feed that to the bot. Messages containing links will always be ignored.
