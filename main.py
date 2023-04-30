@@ -11,6 +11,8 @@ import io
 from bots_config import *
 import os
 from dotenv import load_dotenv
+import aiohttp
+import asyncio
 load_dotenv()
 user_whitelist = []
 user_blacklist = []
@@ -140,34 +142,28 @@ def get_daytime(): # get the current time in japan and return the time as a keyw
         return "night time, "
     
 
-
-
-def oobabooga_modified(msg): # modified version of oobabooga() that only generates 7 tokens instead of 150 (for the SD prompt)
+async def oobabooga_modified(msg): 
     params_oobabooga["prompt"] = msg
     params_oobabooga["max_new_tokens"] = 7
     payload = json.dumps(params_oobabooga, ensure_ascii=True)
-    response = requests.post(f"http://{oobabooga_Server}:5000/api/v1/generate", data=payload)
-    response = response.json()
-    reply = response["results"][0]["text"]
-    print(f"oobabooga reply: {reply}")
-    return reply
+    async with aiohttp.ClientSession() as session:
+        async with session.post(f"http://{oobabooga_Server}:5000/api/v1/generate", data=payload) as resp:
+            response = await resp.json()
+            reply = response["results"][0]["text"]
+            print(f"oobabooga reply: {reply}")
+            return reply
 
 
-
-
-def oobabooga(msg): # send the prompt to oobabooga and return the generated text
+async def oobabooga(msg): 
     params_oobabooga["prompt"] = msg
     params_oobabooga["max_new_tokens"] = 50
     payload = json.dumps(params_oobabooga, ensure_ascii=True)
-    print(payload)
-    response = requests.post(f"http://{oobabooga_Server}:5000/api/v1/generate", data=payload)
-    response = response.json()
-    reply = response["results"][0]["text"]
-    print(f"oobabooga reply: {reply}")
-    return reply
-
-
-
+    async with aiohttp.ClientSession() as session:
+        async with session.post(f"http://{oobabooga_Server}:5000/api/v1/generate", data=payload) as resp:
+            response = await resp.json()
+            reply = response["results"][0]["text"]
+            print(f"oobabooga reply: {reply}")
+            return reply
 
 def ping_to_username(msg): # resolve all the pings inside of a message to their corresponding username
     matches = re.findall(ping_regex_pattern, msg)
@@ -328,7 +324,7 @@ async def on_message(message):
                             filtered_history = filter_message(cleaned_history) # do the thingys to the history
                             async with message.channel.typing():
 
-                                response = oobabooga(filtered_history + f'*[{message.author.name}]: {image_text}*\n' f'[{Bot_Name}]: ') # add history 4 context + img text
+                                response = await oobabooga(filtered_history + f'*[{message.author.name}]: {image_text}*\n' f'[{Bot_Name}]: ') # add history 4 context + img text
 
                                 try:
 
@@ -361,7 +357,7 @@ async def on_message(message):
 
                     async with message.channel.typing():
 
-                        response = oobabooga_modified(filtered_history + Image_input_prompt)
+                        response = await oobabooga_modified(filtered_history + Image_input_prompt)
 
                         try:
 
@@ -395,7 +391,7 @@ async def on_message(message):
                                                                                           # so that the bot thinks it is replying to the message
                 async with message.channel.typing():
 
-                    response = oobabooga(filtered_history + f'*[{message.author.name}]: {reply_to_msg}*\n[{Bot_Name}]: ')
+                    response = await oobabooga(filtered_history + f'*[{message.author.name}]: {reply_to_msg}*\n[{Bot_Name}]: ')
 
                     try:
 
@@ -438,7 +434,7 @@ async def on_message(message):
 
                             async with message.channel.typing():
 
-                                response = oobabooga(filtered_history + f'*[{message.author.name}]: {image_text}*\n' f'[{Bot_Name}]: ')
+                                response = await oobabooga(filtered_history + f'*[{message.author.name}]: {image_text}*\n' f'[{Bot_Name}]: ')
 
                                 try:
 
@@ -474,7 +470,7 @@ async def on_message(message):
 
                     async with message.channel.typing():
 
-                        response = oobabooga_modified(filtered_history + Image_input_prompt)
+                        response = await oobabooga_modified(filtered_history + Image_input_prompt)
 
                         try:
 
@@ -508,7 +504,7 @@ async def on_message(message):
 
                 async with message.channel.typing():
 
-                    response = oobabooga(filtered_history + f'*[{message.author.name}]: {reply_to_msg}*\n[{Bot_Name}]: ')
+                    response = await oobabooga(filtered_history + f'*[{message.author.name}]: {reply_to_msg}*\n[{Bot_Name}]: ')
 
                     try:
 
