@@ -2,7 +2,7 @@
 ##############################################################################################################################################
 Bot_Name= "Sally"
 activity = "Neural network brain stuff" # set the bot activity
-Sally_channel_id= 1101236463854694450 # set the channel id where sally will be active
+Sally_channel_id= 1102331128674787388 # set the channel id where sally will be active
 memory_amount = 20
 respond_to_everything = True
 ignore_mode= False # ignore messages containing bad shit, otherwise just strip the messages 
@@ -82,8 +82,8 @@ params_stableDiff = {
    "prompt": "",
     "negative_prompt": "(worst quality, low quality:1.4), 3d, cgi, 3d render, naked, nude, hands, extra fingers, not enough fingers, 6 fingers, 4 fingers",
     "steps": 55,
-    "width": 450,
-    "height": 400,
+    "width": 100,#450,
+    "height": 100,#400,
     "cfg_scale": 7.5,
     "send_images": True,
     "sampler_name": "DPM++ SDE Karras"

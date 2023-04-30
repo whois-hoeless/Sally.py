@@ -14,10 +14,13 @@ from dotenv import load_dotenv
 import aiohttp
 import asyncio
 load_dotenv()
+
+lock = asyncio.Lock()
 user_whitelist = []
 user_blacklist = []
 ub = os.getenv("user_blacklist").split(',')
 uw = os.getenv("user_whitelist").split(',')
+
 try: 
     for i in ub:
         user_blacklist.append(int(i))
@@ -107,7 +110,7 @@ def clean_user_prompt(msg): # do smart big brain stuff to do things (remove imag
 def cleaner(msg): # replace all the nsfw keywords with the word "cat" (seemed like a good idea to me)
     for word in banned_words_nsfw:
         if word in msg.lower():
-            print(f"found {word} in msg! Replacing with cat..")
+            print(f"found {word} in msg / history! Replacing with cat..")
             msg = msg.replace(word, "cat")
     return msg
 
@@ -150,7 +153,6 @@ async def oobabooga_modified(msg):
         async with session.post(f"http://{oobabooga_Server}:5000/api/v1/generate", data=payload) as resp:
             response = await resp.json()
             reply = response["results"][0]["text"]
-            print(f"oobabooga reply: {reply}")
             return reply
 
 
@@ -162,7 +164,6 @@ async def oobabooga(msg):
         async with session.post(f"http://{oobabooga_Server}:5000/api/v1/generate", data=payload) as resp:
             response = await resp.json()
             reply = response["results"][0]["text"]
-            print(f"oobabooga reply: {reply}")
             return reply
 
 def ping_to_username(msg): # resolve all the pings inside of a message to their corresponding username
@@ -192,7 +193,7 @@ def print_config(): # print the current config for the startup (not many options
 
 
 
-def stable_diff(stable_prompt, msg): # send the prompt to stable diffusion and save the generated image
+async def stable_diff(stable_prompt, msg): 
     print("Stable Diffusion image requested:")
     payload = params_stableDiff
     time = get_daytime()
@@ -200,12 +201,17 @@ def stable_diff(stable_prompt, msg): # send the prompt to stable diffusion and s
     full_prompt = re.sub('\s+', ' ',sally_description + time + user_msg + stable_prompt).strip()
     print("Prompt" + full_prompt)
     payload["prompt"] = full_prompt
-    response = requests.post(f"http://127.0.0.1:7860/sdapi/v1/txt2img", json=payload)
-    response = response.json()
-    image =  response['images']
-    for i in image:
-        image = Image.open(io.BytesIO(base64.b64decode(i.split(",",1)[0])))
-        image.save('selfie.png')
+    async with aiohttp.ClientSession() as session:
+        async with session.post(f"http://127.0.0.1:7860/sdapi/v1/txt2img", json=payload) as resp:
+            response = await resp.json()
+            image = response['images']
+            for i in image:
+                image = Image.open(io.BytesIO(base64.b64decode(i.split(",",1)[0])))
+                image.save('selfie.png')
+            with open("selfie.png", "rb") as f:
+                selfie = discord.File(f, filename="selfie.png")
+                f.close()
+            return selfie
 
 
 
@@ -324,8 +330,8 @@ async def on_message(message):
                             cleaned_history = cleaner(prompt_history)
                             filtered_history = filter_message(cleaned_history) # do the thingys to the history
                             async with message.channel.typing():
-
-                                response = await oobabooga(filtered_history + f'*[{message.author.name}]: {image_text}*\n' f'[{Bot_Name}]: ') # add history 4 context + img text
+                                async with lock:
+                                    response = await oobabooga(filtered_history + f'*[{message.author.name}]: {image_text}*\n' f'[{Bot_Name}]: ') # add history 4 context + img text
 
                                 try:
 
@@ -337,6 +343,7 @@ async def on_message(message):
                                 except ValueError:
 
                                     response = response # if there is no [ or * in the response, then just use the response
+                                print(f"oobabooga reply: {response}")
                                 await message.channel.send(content=response, reference=message)
                 
 
@@ -357,8 +364,9 @@ async def on_message(message):
                     filtered_history = filter_message(prompt_history)
 
                     async with message.channel.typing():
+                        async with lock:
 
-                        response = await oobabooga_modified(filtered_history + Image_input_prompt)
+                            response = await oobabooga_modified(filtered_history + Image_input_prompt)
 
                         try:
 
@@ -371,10 +379,8 @@ async def on_message(message):
 
                             response = response
 
-                        stable_diff(response, message.content)
-                        with open("selfie.png", "rb") as f:
-                            selfie = discord.File(f, filename="selfie.png")
-                        f.close()
+                        async with lock:
+                            selfie = await stable_diff(response, message.content)
 
                         # to explain this, content is always the message text, file is the attachment and reference is the message that the bot is replying to
                         await message.channel.send(file=selfie, reference=message) 
@@ -391,8 +397,8 @@ async def on_message(message):
                 reply_to_msg = ping_to_username(cleaner(filter_message(message.content))) # to add the message ontop of the history in a reply like style
                                                                                           # so that the bot thinks it is replying to the message
                 async with message.channel.typing():
-
-                    response = await oobabooga(filtered_history + f'*[{message.author.name}]: {reply_to_msg}*\n[{Bot_Name}]: ')
+                    async with lock:
+                        response = await oobabooga(filtered_history + f'*[{message.author.name}]: {reply_to_msg}*\n[{Bot_Name}]: ')
 
                     try:
 
@@ -404,6 +410,7 @@ async def on_message(message):
                     except ValueError:
 
                         response = response
+                    print(f"oobabooga reply: {response}")
                     await message.channel.send(content=response, reference=message) # only send a message if the prompt didn't contain nsfw keywords or links
     
         else: # if ignore mode is not enabled, then just send the cleaned message version to the LLM
@@ -434,8 +441,8 @@ async def on_message(message):
                             filtered_history = filter_message(cleaned_history)
 
                             async with message.channel.typing():
-
-                                response = await oobabooga(filtered_history + f'*[{message.author.name}]: {image_text}*\n' f'[{Bot_Name}]: ')
+                                async with lock:
+                                    response = await oobabooga(filtered_history + f'*[{message.author.name}]: {image_text}*\n' f'[{Bot_Name}]: ')
 
                                 try:
 
@@ -447,6 +454,7 @@ async def on_message(message):
                                 except ValueError:
 
                                     response = response
+                                print(f"oobabooga reply: {response}")
                                 await message.channel.send(content=response, reference=message)
 
                         else: 
@@ -470,8 +478,9 @@ async def on_message(message):
                     filtered_history = filter_message(prompt_history)
 
                     async with message.channel.typing():
+                        async with lock:
 
-                        response = await oobabooga_modified(filtered_history + Image_input_prompt)
+                            response = await oobabooga_modified(filtered_history + Image_input_prompt)
 
                         try:
 
@@ -483,12 +492,9 @@ async def on_message(message):
                         except ValueError:
                             
                             response = response
+                        async with lock:
 
-                        stable_diff(response, message.content)
-
-                        with open("selfie.png", "rb") as f:
-                            selfie = discord.File(f, filename="selfie.png")
-                        f.close()
+                            selfie = await stable_diff(response, message.content)
 
                         await message.channel.send(file=selfie, reference=message)
 
@@ -504,8 +510,8 @@ async def on_message(message):
                 filtered_history = filter_message(cleaned_history)
 
                 async with message.channel.typing():
-
-                    response = await oobabooga(filtered_history + f'*[{message.author.name}]: {reply_to_msg}*\n[{Bot_Name}]: ')
+                    async with lock:
+                        response = await oobabooga(filtered_history + f'*[{message.author.name}]: {reply_to_msg}*\n[{Bot_Name}]: ')
 
                     try:
 
@@ -517,7 +523,7 @@ async def on_message(message):
                     except ValueError:
 
                         response = response
-
+                    print(f"oobabooga reply: {response}")
                     await message.channel.send(content=response, reference=message)
     
     else:
