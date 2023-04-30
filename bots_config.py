@@ -2,7 +2,7 @@
 ##############################################################################################################################################
 Bot_Name= "Sally"
 activity = "Neural network brain stuff" # set the bot activity
-memory_amount = 10
+memory_amount = 20
 respond_to_everything = True
 ignore_mode= False # ignore messages containing bad shit, otherwise just strip the messages 
                    # and feed that to the bot. Messages containing links will always be ignored.
@@ -54,12 +54,12 @@ params_oobabooga = {
     'prompt': "",
     'max_new_tokens': 200,
     'do_sample': True,
-    'temperature': 0.7, # how random she will be; higher = more random
-    'top_p': 0.1,        # the bigger the more random?
-    'typical_p': 1,      # originality?
-    'repetition_penalty': 1.18, # higer = less repetition
+    'temperature': 0.75, # how random she will be; higher = more random
+    'top_p': 0.12,        # the bigger the more random?
+    'typical_p': 1.1,      # originality?
+    'repetition_penalty': 1.19, # higer = less repetition
     'encoder_repetition_penalty': 1, # higher = less on drugs and more in context? .9 - 1.4?
-    'top_k': 40,         # also does the random? 0 - 200
+    'top_k': 45,         # also does the random? 0 - 200
     'no_repeat_ngram_size': 0,
     'num_beams': 1,
     'penalty_alpha': 0,

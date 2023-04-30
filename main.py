@@ -157,7 +157,7 @@ def oobabooga_modified(msg): # modified version of oobabooga() that only generat
 
 def oobabooga(msg): # send the prompt to oobabooga and return the generated text
     params_oobabooga["prompt"] = msg
-    params_oobabooga["max_new_tokens"] = 150
+    params_oobabooga["max_new_tokens"] = 50
     payload = json.dumps(params_oobabooga, ensure_ascii=True)
     print(payload)
     response = requests.post(f"http://{oobabooga_Server}:5000/api/v1/generate", data=payload)
