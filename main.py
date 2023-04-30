@@ -231,8 +231,9 @@ async def on_message(message):
             return
     except: pass
 
-    if message.author == client.user: # if the message is from the bot or the user is blacklisted,
-                                                                             # then just completely ignore the message
+    if message.author == client.user or message.channel.id != Sally_channel_id: # if the message is from the bot or the channel is 
+                                                                                # not the correct channel,
+                                                                                # then just completely ignore the message
         return
 
 

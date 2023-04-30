@@ -2,6 +2,7 @@
 ##############################################################################################################################################
 Bot_Name= "Sally"
 activity = "Neural network brain stuff" # set the bot activity
+Sally_channel_id= 1101236463854694450 # set the channel id where sally will be active
 memory_amount = 20
 respond_to_everything = True
 ignore_mode= False # ignore messages containing bad shit, otherwise just strip the messages 
