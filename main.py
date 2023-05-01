@@ -213,9 +213,8 @@ async def stable_diff(stable_prompt, msg):
                 f.close()
             return selfie
 
-
-
-
+def split_response(msg): # split the response into multiple messages if it's too long
+    return [msg[i:i+2000] for i in range(0, len(msg), 2000)]
 
 
 @client.event # start the funny bot stuff (LETS GOOOO)
@@ -344,7 +343,9 @@ async def on_message(message):
 
                                     response = response # if there is no [ or * in the response, then just use the response
                                 print(f"oobabooga reply: {response}")
-                                await message.channel.send(content=response, reference=message)
+                                response = split_response(response)
+                                for i in response:
+                                    await message.channel.send(content=i, reference=message)
                 
 
             elif check_for_image_request(message.content): # if the text is a request for an image
@@ -411,7 +412,9 @@ async def on_message(message):
 
                         response = response
                     print(f"oobabooga reply: {response}")
-                    await message.channel.send(content=response, reference=message) # only send a message if the prompt didn't contain nsfw keywords or links
+                    response = split_response(response)
+                    for i in response:
+                        await message.channel.send(content=i, reference=message) # only send a message if the prompt didn't contain nsfw keywords or links
     
         else: # if ignore mode is not enabled, then just send the cleaned message version to the LLM
 
@@ -455,7 +458,9 @@ async def on_message(message):
 
                                     response = response
                                 print(f"oobabooga reply: {response}")
-                                await message.channel.send(content=response, reference=message)
+                                response = split_response(response)
+                                for i in response:
+                                    await message.channel.send(content=i, reference=message)
 
                         else: 
                             print("Image got uploaded but didn't contain text, passing..")
@@ -524,7 +529,9 @@ async def on_message(message):
 
                         response = response
                     print(f"oobabooga reply: {response}")
-                    await message.channel.send(content=response, reference=message)
+                    response = split_response(response)
+                    for i in response:
+                        await message.channel.send(content=i, reference=message)
     
     else:
         return # if the message is random ignore it
